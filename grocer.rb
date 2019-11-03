@@ -36,7 +36,6 @@ def consolidate_cart(cart)
 end
 
 def consolidate_cart_hash(cart)
-  # This part feels really confusing. Do they want an Array back or a hash? It seems like they want an array of hashes back. Seems like it would take more work to access items from it then to check if they are duplicates. I had to make a hash first then add those items to an array.
   hash = {}
   new_array = []
   cart.each do |item|
@@ -53,11 +52,7 @@ def consolidate_cart_hash(cart)
       }
     end
   end
- 
-  # hash.each do |key, value|
-  #   new_array.push(value)
-  # end
-  # new_array
+
   hash
 end
 
@@ -97,10 +92,6 @@ end
 end
 
 def apply_clearance(cart)
-  # Consult README for inputs and outputs
-  #
-  # REMEMBER: This method **should** update cart
-  # binding.pry
   cart.each do |item|
     if item[:clearance]
       item[:price] = (item[:price] * 0.8).round(2)
@@ -110,16 +101,6 @@ def apply_clearance(cart)
 end
 
 def checkout(cart, coupons)
-  # Consult README for inputs and outputs
-  #
-  # This method should call
-  # * consolidate_cart
-  # * apply_coupons
-  # * apply_clearance
-  #
-  # BEFORE it begins the work of calculating the total (or else you might have
-  # some irritated customers
-
   total = 0
 
   consolidated_cart = consolidate_cart(cart)

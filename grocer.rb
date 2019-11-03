@@ -18,13 +18,13 @@ def consolidate_cart(cart)
   cart.each do |item|
     item_name = item.values[0]
     if hash[item_name]
-      hash[item_name][:count] += item[:count]
+      hash[item_name][:count] += 1
     else 
       hash[item_name] = {
         item: item_name,
         price: item[:price],
         clearance: item[:clearance],
-        count: item[:count]
+        count: 1
       }
     end
   end
@@ -41,14 +41,15 @@ def consolidate_cart_hash(cart)
   new_array = []
   cart.each do |item|
     item_name = item.values[0]
-    binding.pry
+    # binding.pry
     if hash[item_name]
-      hash[item_name][:count] += 1
+      hash[item_name][:count] += item[:count]
     else 
       hash[item_name] = {
+        item: item_name,
         price: item[:price],
         clearance: item[:clearance],
-        count: 1
+        count: item[:count]
       }
     end
   end
@@ -62,55 +63,50 @@ end
 
 def apply_coupons(cart, coupons)
   consolidated_cart = consolidate_cart_hash(cart)
+  hash = consolidated_cart.clone
+  new_array = []
 
-  coupons.each do |coupon|
-    coupon_item = coupon[:item]
-    
-    # cart.each do |cart_item|
-    #   # binding.pry
-    #   if coupon_item == cart_item[:item] && cart_item[:count] >= coupon[:num]
-    #     cart_coupon = "#{coupon_item} W/COUPON"
-    #     binding.pry
-
-    #     # Now that it's an Array of hashes this part is far more difficult. We can't just see if that coupon already exists in the hash.
-    #     if cart[cart_coupon]
-    #       cart[cart_coupon][:count] += 1
-    #     else
-    #       cart.push({
-    #         item: cart_item[:item],
-    #         price: cart_item[:price],
-    #         clearance: cart_item[:clearance],
-    #         count: 1
-    #       })
-    #     end
-    #     cart_item[:count] -= coupon[:count]
-    #   end
-    # end
-    consolidated_cart.each do |item_name, item_info|
-      
-
-      binding.pry
-      if item_name == coupon_item && item_info[:count] >= coupon[:num]
-        cart_coupon = "#{coupon_item} W/COUPON"
-
-        if consolidated_cart[cart_coupon]
-          consolidated_cart[cart_coupon][:count] += 1
-        else
-          consolidated_cart[cart_coupon] = {
-            price: coupon[:price]
-          }
+  # Now that it's an Array of hashes this part is far more difficult. We can't just see if that coupon already exists in the hash.
+  if !coupons.empty? 
+    coupons.each do |coupon|
+      coupon_item = coupon[:item]
+      consolidated_cart.each do |item_name, item_info|
+        
+        if item_name == coupon_item && item_info[:count] >= coupon[:num]
+          cart_coupon = "#{coupon_item} W/COUPON"
+          if hash[cart_coupon]
+            hash[cart_coupon][:count] += coupon[:num]
+          else
+            hash[cart_coupon] = {
+              item: cart_coupon,
+              price: coupon[:cost]/coupon[:num],
+              count: coupon[:num],
+              clearance: item_info[:clearance]
+            }
+          end
+          hash[item_name][:count] -= coupon[:num]
         end
       end
-    end
-
   end
-  cart
+end
+
+hash.each do |item_name, item_info|
+  new_array.push(item_info)
+end
+  return new_array
 end
 
 def apply_clearance(cart)
   # Consult README for inputs and outputs
   #
   # REMEMBER: This method **should** update cart
+  # binding.pry
+  cart.each do |item|
+    if item[:clearance]
+      item[:price] = (item[:price] * 0.8).round(2)
+    end
+  end
+  cart
 end
 
 def checkout(cart, coupons)
@@ -123,4 +119,19 @@ def checkout(cart, coupons)
   #
   # BEFORE it begins the work of calculating the total (or else you might have
   # some irritated customers
+
+  total = 0
+
+  consolidated_cart = consolidate_cart(cart)
+  cart_with_coupons_applied = apply_coupons(consolidated_cart, coupons)
+  cart_with_clerance_applied = apply_clearance(cart_with_coupons_applied)
+  
+  cart_with_clerance_applied.each do |item|
+    total += (item[:price] * item[:count])
+  end
+
+  if total >= 100
+    total = (total * 0.9)
+  end
+  total
 end
